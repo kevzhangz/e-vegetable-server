@@ -13,7 +13,13 @@ const signin = async (req, res, next) => {
 
   if(!user || !user.authenticate(req.body.password)){
     return res.status(401).json({
-      error: 'Email or password not match'
+      error: 'Email atau password salah'
+    })
+  }
+
+  if(!user.is_verified){
+    return res.status(401).json({
+      error: 'User belum terverifikasi'
     })
   }
 

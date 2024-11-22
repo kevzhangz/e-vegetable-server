@@ -25,7 +25,7 @@ const create = async (req, res) => {
     const validEmail = emailValidationRegex.test(req.body.email);
 
     if(!validEmail){
-      return res.status(500).json({error: "Email not valid"});
+      return res.status(500).json({error: "Email tidak valid"});
     }
   }
 
@@ -52,14 +52,14 @@ const create = async (req, res) => {
     let mailOptions = { 
       from: process.env.MT_USER, 
       to: user.email,
-      subject: 'Account Verification Link',
+      subject: 'Link Verifikasi Akun E-Vegetables',
       html: htmlToSend
     };
   
     await transporter.sendMail(mailOptions)
 
     return res.status(200).json({
-      message: 'Successfully signed up'
+      message: 'Pendaftaran berhasil'
     })
   } catch (err){
     let error;
@@ -111,9 +111,53 @@ const update = async (req, res) => {
   }
 }
 
-const userByEmail = async (req, res, next) => {
+const updateBuyerInformation = async (req, res) => {
   try {
-    const user = await User.findOne({email: req.params.email})
+    let user = req.profile;
+
+    if(!req.body.address || req.body.address == ''){
+      return res.status(500).json({error: "Alamat wajib diisi"});
+    }
+
+    if(!req.body.phone_number || req.body.phone_number == ''){
+      return res.status(500).json({error: "No.HP wajib diisi"});
+    }
+
+    user = extend(user, req.body)
+    await user.save()
+    user.hashed_password = undefined
+    user.salt = undefined
+    user.saved_recipe = undefined;
+    user.__v = undefined;
+    user._id = undefined;
+
+    let response = {
+      ...user._doc,
+    }
+
+    res.json(response);
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err)
+    })
+  }
+}
+
+const buyerByEmail = async (req, res, next) => {
+  try {
+    const user = await User.findOne({email: req.params.email, role: 'buyer'})
+    req.profile = user
+    next()
+  } catch (err) {
+    return res.status(500).json({
+      error: errorHandler.getErrorMessage(err)
+    })
+  } 
+}
+
+const sellerByEmail = async (req, res, next) => {
+  try {
+    const user = await User.findOne({email: req.params.email, role: 'seller'})
     req.profile = user
     next()
   } catch (err) {
@@ -129,5 +173,7 @@ export default {
   create,
   read,
   update,
-  userByEmail
+  updateBuyerInformation,
+  buyerByEmail,
+  sellerByEmail,
 }

@@ -13,12 +13,25 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: "Email is required",
-    unique: true,
   },
   hashed_password: {
     type: String,
     required: "Password is required"
   },
+  role: {
+    type: String,
+    required: "Role is required"
+  },
+  geolocation: {
+    lat: String,
+    lon: String,
+  },
+  address: String,
+  kecamatan: String,
+  kelurahan: String,
+  rt: String,
+  rw: String,
+  phone_number: String,
   is_verified: { type: Boolean, default: false },
   profile: { data: Buffer, contentType: String},
   salt: String,
@@ -61,5 +74,6 @@ UserSchema.methods = {
   }
 }
 
+UserSchema.index({ email: 1, role: 1 }, { unique: true });
 
 export default mongoose.model('User', UserSchema);
