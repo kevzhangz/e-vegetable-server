@@ -9,7 +9,7 @@ dotenv.config();
 const jwtsecret = process.env.JWTSECRET
 
 const signin = async (req, res, next) => {
-  let user = await User.findOne({'email': req.body.email})
+  let user = await User.findOne({'email': req.body.email, role: req.body.role})
 
   if(!user || !user.authenticate(req.body.password)){
     return res.status(401).json({
@@ -33,14 +33,13 @@ const signin = async (req, res, next) => {
     expire: new Date() + 9999
   })
 
-  data = {
+  user.hashed_password = undefined
+  user.salt = undefined
+  user.__v = undefined;
+
+  let data = {
     token,
-    user: {
-      _id: user._id,
-      username: user.username,
-      name: user.name,
-      email: user.email,
-    }
+    user: {...user._doc}
   }
 
   if(user.profile.data){
