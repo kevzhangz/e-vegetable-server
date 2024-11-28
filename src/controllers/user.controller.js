@@ -123,6 +123,8 @@ const updateBuyerInformation = async (req, res) => {
       return res.status(500).json({error: "No.HP wajib diisi"});
     }
 
+    req.body.geolocation = {"type": "Point", "coordinates": [req.body.geolocation.lon, req.body.geolocation.lat]};
+
     user = extend(user, req.body)
     await user.save()
     user.hashed_password = undefined
@@ -145,19 +147,19 @@ const updateBuyerInformation = async (req, res) => {
 
 const buyerByEmail = async (req, res, next) => {
   try {
-    const user = await User.findOne({email: req.params.email, role: 'buyer'})
+    const user = await User.findOne({email: req.params.buyerEmail, role: 'buyer'})
     req.profile = user
     next()
   } catch (err) {
     return res.status(500).json({
       error: errorHandler.getErrorMessage(err)
     })
-  } 
+  }
 }
 
 const sellerByEmail = async (req, res, next) => {
   try {
-    const user = await User.findOne({email: req.params.email, role: 'seller'})
+    const user = await User.findOne({email: req.params.sellerEmail, role: 'seller'})
     req.profile = user
     next()
   } catch (err) {

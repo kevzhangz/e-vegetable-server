@@ -23,8 +23,8 @@ const UserSchema = new mongoose.Schema({
     required: "Role is required"
   },
   geolocation: {
-    lat: String,
-    lon: String,
+    type: { type: String },
+    coordinates: [Number],
   },
   address: String,
   kecamatan: String,
@@ -32,6 +32,7 @@ const UserSchema = new mongoose.Schema({
   rt: String,
   rw: String,
   phone_number: String,
+  has_store: { type: Boolean, default: false },
   is_verified: { type: Boolean, default: false },
   profile: { data: Buffer, contentType: String},
   salt: String,
@@ -75,5 +76,6 @@ UserSchema.methods = {
 }
 
 UserSchema.index({ email: 1, role: 1 }, { unique: true });
+UserSchema.index({ geolocation: "2dsphere" });
 
 export default mongoose.model('User', UserSchema);
