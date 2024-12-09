@@ -1,4 +1,5 @@
 import User from '../models/user.model.js'
+import Store from '../models/store.model.js';
 import jwt from 'jsonwebtoken'
 import { expressjwt } from 'express-jwt'
 
@@ -37,9 +38,18 @@ const signin = async (req, res, next) => {
   user.salt = undefined
   user.__v = undefined;
 
+  let userData = {};
+
+  if(req.body.role == 'seller'){
+    let store = await Store.findOne({owner: user._id});
+    userData = {...user._doc, geolocation: store.geolocation, store_id: store.store_id};
+  } else {
+    userData = {...user._doc};
+  }
+
   let data = {
     token,
-    user: {...user._doc}
+    user: userData
   }
 
   if(user.profile.data){

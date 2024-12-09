@@ -41,7 +41,7 @@ const create = async (req, res) => {
   try {
     let buffer = Buffer.from(req.body.image, 'base64')
 
-    let storeOwner = User.find({email: req.body.email, role: 'seller'});
+    let storeOwner = await User.findOne({email: req.body.email, role: 'seller'});
 
     let newStore = {
       ...req.body,
@@ -70,6 +70,8 @@ const create = async (req, res) => {
 
     let response = {
       ...storeOwner._doc,
+      geolocation: store.geolocation,
+      store_id: store.store_id
     }
 
     return res.status(200).json(response);
