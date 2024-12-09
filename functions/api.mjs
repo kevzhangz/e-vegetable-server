@@ -7,6 +7,7 @@ import mongoose from 'mongoose'
 import authRoutes from '../src/routes/auth.routes.js'
 import userRoutes from '../src/routes/user.routes.js'
 import verifyRoutes from '../src/routes/verify.routes.js'
+import storeRoutes from '../src/routes/store.routes.js'
 
 // setup process.env
 import dotenv from 'dotenv'
@@ -43,6 +44,7 @@ app.use(cors())
 
 app.use('/', authRoutes);
 app.use('/', userRoutes);
+app.use('/', storeRoutes);
 app.use('/', verifyRoutes);
 app.use('/', router);
 
