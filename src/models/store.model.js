@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 
 const StoreSchema = new mongoose.Schema({
+  store_id: String,
   owner: { type: mongoose.Schema.ObjectId, ref: 'User', required: true },
   name: { type: String, required: true },
   geolocation: {
@@ -16,6 +17,7 @@ const StoreSchema = new mongoose.Schema({
   image: { data: Buffer, contentType: String},
 });
 
+StoreSchema.index({ store_id: 1 }, { unique: true });
 StoreSchema.index({ geolocation: "2dsphere" });
 
 export default mongoose.model('Store', StoreSchema);
