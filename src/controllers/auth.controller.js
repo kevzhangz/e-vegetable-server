@@ -42,7 +42,8 @@ const signin = async (req, res, next) => {
 
   if(req.body.role == 'seller'){
     let store = await Store.findOne({owner: user._id});
-    userData = {...user._doc, geolocation: store.geolocation ?? {}, store_id: store.store_id ?? null};
+
+    userData = {...user._doc, geolocation: store?.geolocation, store_id: store?.store_id};
   } else {
     userData = {...user._doc};
   }
