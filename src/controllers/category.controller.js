@@ -13,7 +13,7 @@ const findAll = async (req, res) => {
   try {
     let query = {};
 
-    query.store_id = req.body.store_id
+    query.store_id = req.store.store_id
 
     // if(req.query.filter){
     //   const category = await Category.find({ name: {$in: req.query.filter.split(',')} }).then(categories => categories.map(category => category._id));
