@@ -8,6 +8,8 @@ import authRoutes from '../src/routes/auth.routes.js'
 import userRoutes from '../src/routes/user.routes.js'
 import verifyRoutes from '../src/routes/verify.routes.js'
 import storeRoutes from '../src/routes/store.routes.js'
+import categoryRoutes from '../src/routes/category.routes.js'
+import productRoutes from '../src/routes/product.routes.js'
 
 // setup process.env
 import dotenv from 'dotenv'
@@ -45,6 +47,8 @@ app.use(cors())
 app.use('/', authRoutes);
 app.use('/', userRoutes);
 app.use('/', storeRoutes);
+app.use('/', categoryRoutes);
+app.use('/', productRoutes);
 app.use('/', verifyRoutes);
 app.use('/', router);
 
