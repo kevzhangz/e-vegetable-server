@@ -16,13 +16,13 @@ const findAll = async (req, res) => {
     let query = {};
 
     if(req.query.search){
-      query.title = { $regex: req.query.search, $options: 'i' };
+      query.name = { $regex: req.query.search, $options: 'i' };
     }
 
-    if(req.query.filter){
-      const category = await Category.find({ name: {$in: req.query.filter.split(',')} }).then(categories => categories.map(category => category._id));
-      query.category = { $in: category };
-    }
+    // if(req.query.filter){
+    //   const category = await Category.find({ name: {$in: req.query.filter.split(',')} }).then(categories => categories.map(category => category._id));
+    //   query.category = { $in: category };
+    // }
 
     let result = await Store.find(query, storeProjections).populate('category posted_by', 'name').sort({ _id: -1}).limit(limit);
 

@@ -1,8 +1,8 @@
 import dbErrorHandler from '../helpers/dbErrorHandler.js'
 import generator from '../helpers/generator.js'
 import Store from '../models/store.model.js'
-import User from '../models/user.model.js'
 import Category from '../models/category.model.js'
+import Product from '../models/product.model.js'
 import extend from 'lodash/extend.js'
 
 const storeProjections = {
@@ -13,14 +13,16 @@ const findAll = async (req, res) => {
   try {
     let query = {};
 
-    query.store_id = req.body.store_id
+    query.store_id = req.store.store_id;
 
     // if(req.query.filter){
     //   const category = await Category.find({ name: {$in: req.query.filter.split(',')} }).then(categories => categories.map(category => category._id));
     //   query.category = { $in: category };
     // }
 
-    let result = await Category.find(query, storeProjections).sort({ _id: -1});
+    let result = await Product.find(query, storeProjections).sort({ _id: -1});
+
+    result = modifyResult(result);
 
     return res.status(200).json({result})
   } catch (err) {
@@ -30,25 +32,47 @@ const findAll = async (req, res) => {
   }
 }
 
+const findCategoryProduct = async (req, res) => {
+    try {
+      let query = {};
+  
+      query.store_id = req.store.store_id;
+      query.category_id = req.category.category_id;
+  
+      let result = await Product.find(query, storeProjections).sort({ _id: -1});
+
+      result = modifyResult(result);
+  
+      return res.status(200).json({result})
+    } catch (err) {
+      return res.status(500).json({
+        error: dbErrorHandler.getErrorMessage(err)
+      })
+    }
+  }
+
 const create = async (req, res) => {
   try {
     const store = await Store.findOne({store_id: req.body.store_id});
     if (!store) return res.status(404).json({ error: "Store not found" });
 
-    let newCategory = {
+    const category = await Store.findOne({store_id: req.body.category_id});
+    if (!category) return res.status(404).json({ error: "Category not found" });
+
+    let newProduct = {
       ...req.body,
-      category_id: generator.generateId(6),
+      product_id: generator.generateId(6),
     }
 
-    const category = new Category(newCategory);
+    const product = new Product(newProduct);
 
-    await category.save();
+    await product.save();
 
-    category.__v = undefined;
-    category._id = undefined;
+    product.__v = undefined;
+    product._id = undefined;
 
     let response = {
-      ...category._doc,
+      ...product._doc,
     }
 
     return res.status(200).json(response);
@@ -62,9 +86,9 @@ const create = async (req, res) => {
 
 const read = async (req, res) => {
   try {
-    let category = await Category.findOne({category_id: req.body.category_id});
+    let product = await Product.findOne({product_id: req.body.product_id});
 
-    return res.status(200).json(category);
+    return res.status(200).json(product);
   } catch (err) {
     return res.status(500).json({
       error: dbErrorHandler.getErrorMessage(err)
@@ -74,13 +98,13 @@ const read = async (req, res) => {
 
 const update = async (req, res) => {
   try {
-    let category = req.category
+    let product = req.product
 
-    category = extend(category, req.body)
-    await category.save();
+    product = extend(product, req.body)
+    await product.save();
 
     return res.status(200).json({
-      messages : 'Category Successfully updated'
+      messages : 'Product Successfully updated'
     });
   } catch (err) {
     return res.status(500).json({
@@ -91,9 +115,9 @@ const update = async (req, res) => {
 
 const destroy = async (req, res) => {
   try {
-    const category = req.category
+    const product = req.product
 
-    await category.deleteOne();
+    await product.deleteOne();
 
     return res.status(200).json({
       messages: 'Category Successfully deleted'
@@ -105,15 +129,15 @@ const destroy = async (req, res) => {
   }
 }
 
-const categoryById = async (req, res, next, id) => {
+const productById = async (req, res, next, id) => {
   try {
-    const category = await Category.findOne({category_id: id});
+    const product = await Product.findOne({product_id: id});
 
-    if(!category){
-      throw Error("Category not found");
+    if(!product){
+      throw Error("Product not found");
     }
 
-    req.category = category
+    req.product = product
     next()
   } catch (err) {
     return res.status(500).json({
@@ -122,11 +146,26 @@ const categoryById = async (req, res, next, id) => {
   }
 }
 
+// Modify product data to make it easier to use on client side
+const modifyResult = (product) => {
+    let res = product.map(item => {
+      let base64Image = item.image.data.toString('base64');
+  
+      return {
+        ...item._doc,
+        image: base64Image,
+      }
+    });
+  
+    return res;
+}
+
 export default {
   findAll,
+  findCategoryProduct,
   create,
   read,
   update,
   destroy,
-  categoryById,
+  productById,
 }
