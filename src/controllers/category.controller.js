@@ -1,7 +1,6 @@
 import dbErrorHandler from '../helpers/dbErrorHandler.js'
 import generator from '../helpers/generator.js'
 import Store from '../models/store.model.js'
-import User from '../models/user.model.js'
 import Category from '../models/category.model.js'
 import extend from 'lodash/extend.js'
 

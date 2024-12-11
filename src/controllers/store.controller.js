@@ -41,6 +41,18 @@ const create = async (req, res) => {
   try {
     let buffer = Buffer.from(req.body.image, 'base64')
 
+    if(!req.body.name){
+      return res.status(500).json({error: "Nama Toko wajib diisi"});
+    }
+
+    if(!req.body.address){
+      return res.status(500).json({error: "Alamat wajib diisi"});
+    }
+
+    if(!req.body.phone_number){
+      return res.status(500).json({error: "No.HP wajib diisi"});
+    }
+
     let storeOwner = await User.findOne({email: req.body.email, role: 'seller'});
 
     let newStore = {
@@ -137,7 +149,7 @@ const destroy = async (req, res) => {
 
 const storeById = async (req, res, next, id) => {
   try {
-    const store = await Store.findOne({store_id: id}).populate('category posted_by', 'name -_id');
+    const store = await Store.findOne({store_id: id});
 
     if(!store){
       throw Error("Store not found");

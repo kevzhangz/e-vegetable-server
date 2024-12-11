@@ -115,11 +115,11 @@ const updateBuyerInformation = async (req, res) => {
   try {
     let user = req.profile;
 
-    if(!req.body.address || req.body.address == ''){
+    if(!req.body.address){
       return res.status(500).json({error: "Alamat wajib diisi"});
     }
 
-    if(!req.body.phone_number || req.body.phone_number == ''){
+    if(!req.body.phone_number){
       return res.status(500).json({error: "No.HP wajib diisi"});
     }
 
