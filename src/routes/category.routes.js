@@ -8,7 +8,7 @@ router.route('/api/store/:store_id/category')
       .get(authCtrl.checkSignin, categoryCtrl.findAll)
 
 router.route('/api/category')
-      .get(authCtrl.checkSignin, categoryCtrl.create)
+      .post(authCtrl.checkSignin, categoryCtrl.create)
 
 router.param('store_id', storeCtrl.storeById)
 
