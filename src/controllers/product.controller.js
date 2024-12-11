@@ -56,12 +56,18 @@ const create = async (req, res) => {
     const store = await Store.findOne({store_id: req.body.store_id});
     if (!store) return res.status(404).json({ error: "Store not found" });
 
-    const category = await Store.findOne({store_id: req.body.category_id});
+    const category = await Category.findOne({category_id: req.body.category_id});
     if (!category) return res.status(404).json({ error: "Category not found" });
+
+    let buffer = Buffer.from(req.body.image, 'base64')
 
     let newProduct = {
       ...req.body,
       product_id: generator.generateId(6),
+      image: {
+        data: buffer,
+        contentType: 'img/jpeg'
+      }
     }
 
     const product = new Product(newProduct);
