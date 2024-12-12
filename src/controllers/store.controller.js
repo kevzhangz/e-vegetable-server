@@ -3,39 +3,104 @@ import generator from '../helpers/generator.js'
 import Store from '../models/store.model.js'
 import User from '../models/user.model.js'
 import Category from '../models/category.model.js'
+import Product from '../models/product.model.js'
 import extend from 'lodash/extend.js'
 
 const storeProjections = {
   '__v': false
 }
 
-const findAll = async (req, res) => {
+// const findAll = async (req, res) => {
+//   try {
+//     const limit = req.query.limit != null ? req.query.limit : 0;
+
+//     let query = {};
+
+//     if(req.query.search){
+//       query.name = { $regex: req.query.search, $options: 'i' };
+//     }
+
+//     // if(req.query.filter){
+//     //   const category = await Category.find({ name: {$in: req.query.filter.split(',')} }).then(categories => categories.map(category => category._id));
+//     //   query.category = { $in: category };
+//     // }
+
+//     let result = await Store.find(query, storeProjections).populate('category posted_by', 'name').sort({ _id: -1}).limit(limit);
+
+//     result = modifyResult(result);
+//     result = await addStatus(req.auth._id, result);
+
+//     return res.status(200).json({result})
+//   } catch (err) {
+//     return res.status(500).json({
+//       error: dbErrorHandler.getErrorMessage(err)
+//     })
+//   }
+// }
+
+const getStoresBySearch = async (req, res, next) => {
   try {
-    const limit = req.query.limit != null ? req.query.limit : 0;
+    const userGeolocation = { 
+      type: 'Point', 
+      coordinates: [parseFloat(req.query.lon), parseFloat(req.query.lat)] 
+    };
 
-    let query = {};
-
-    if(req.query.search){
-      query.name = { $regex: req.query.search, $options: 'i' };
+    if (!userGeolocation || !userGeolocation.coordinates || userGeolocation.coordinates.length !== 2) {
+      throw new Error('Invalid user geolocation provided');
     }
 
-    // if(req.query.filter){
-    //   const category = await Category.find({ name: {$in: req.query.filter.split(',')} }).then(categories => categories.map(category => category._id));
-    //   query.category = { $in: category };
-    // }
+    let searchTerm = req.query.search ?? '';
 
-    let result = await Store.find(query, storeProjections).populate('category posted_by', 'name').sort({ _id: -1}).limit(limit);
+    // Find product IDs matching the search term
+    const products = await Product.find({ name: { $regex: searchTerm, $options: 'i' } }).select('store_id');
+    const storeIdsFromProducts = products.map(product => product.store_id);
 
-    result = modifyResult(result);
-    result = await addStatus(req.auth._id, result);
+    // Use MongoDB aggregation with $geoNear
+    let aggregateOptions = [
+      {
+        $geoNear: {
+          near: userGeolocation,
+          distanceField: 'distance', // Distance will be added to the result in meters
+          spherical: true,
+        },
+      },
+      {
+        $match: {
+          $or: [
+            { store_id: { $in: storeIdsFromProducts } },
+            { name: { $regex: searchTerm, $options: 'i' } },
+          ],
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          image: 1,
+          distance: { $divide: ['$distance', 1000] }, // Convert meters to kilometers
+          categories: 1,
+        },
+      },
+      {
+        $sort: { distance: 1 }, // Sort by closest distance
+      },
+    ]
 
-    return res.status(200).json({result})
-  } catch (err) {
-    return res.status(500).json({
-      error: dbErrorHandler.getErrorMessage(err)
-    })
+    const stores = await Store.aggregate(aggregateOptions);
+
+    // Format the image as base64 for frontend consumption
+    const formattedStores = stores.map(store => ({
+      name: store.name,
+      imageUrl: store.image ? store.image.data.toString('base64') : null,
+      distance: parseFloat(store.distance.toFixed(2)),
+      categories: store.categories || 'Unknown',
+    }));
+
+    return res.status(200).json(formattedStores);
+  } catch (error) {
+    console.error('Error fetching stores:', error);
+    throw error;
   }
-}
+};
 
 const create = async (req, res) => {
   try {
@@ -180,6 +245,7 @@ const modifyResult = (store) => {
 
 export default {
   findAll,
+  getStoresBySearch,
   create,
   read,
   update,

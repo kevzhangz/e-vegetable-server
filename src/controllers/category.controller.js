@@ -3,6 +3,7 @@ import generator from '../helpers/generator.js'
 import Store from '../models/store.model.js'
 import Category from '../models/category.model.js'
 import extend from 'lodash/extend.js'
+import Product from '../models/product.model.js'
 
 const storeProjections = {
   '__v': false
@@ -92,6 +93,7 @@ const destroy = async (req, res) => {
   try {
     const category = req.category
 
+    await Product.deleteMany({category_id: category.category_id});
     await category.deleteOne();
 
     return res.status(200).json({

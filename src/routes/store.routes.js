@@ -4,6 +4,7 @@ import authCtrl from '../controllers/auth.controller.js'
 const router =  express.Router();
 
 router.route('/api/store')
+      .get(authCtrl.checkSignin, storeCtrl.getStoresBySearch)
       .post(authCtrl.checkSignin, storeCtrl.create)
 
 export default router;

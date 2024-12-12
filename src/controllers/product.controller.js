@@ -133,7 +133,7 @@ const destroy = async (req, res) => {
     await product.deleteOne();
 
     return res.status(200).json({
-      messages: 'Category Successfully deleted'
+      messages: 'Product Successfully deleted'
     })
   } catch (err) {
     return res.status(500).json({
