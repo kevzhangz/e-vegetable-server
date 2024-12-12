@@ -78,6 +78,7 @@ const getStoresBySearch = async (req, res, next) => {
           image: 1,
           distance: { $divide: ['$distance', 1000] }, // Convert meters to kilometers
           categories: 1,
+          store_id: 1,
         },
       },
       {
@@ -89,6 +90,7 @@ const getStoresBySearch = async (req, res, next) => {
 
     // Format the image as base64 for frontend consumption
     const formattedStores = stores.map(store => ({
+      store_id: store.store_id,
       name: store.name,
       imageUrl: store.image ? store.image.data.toString('base64') : null,
       distance: parseFloat(store.distance.toFixed(2)),
