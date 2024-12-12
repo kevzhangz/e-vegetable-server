@@ -45,7 +45,7 @@ const create = async (req, res) => {
     });
 
     let name = String(user.name[0]).toUpperCase() + String(user.name).slice(1)
-    let verify_link = 'http:\/\/' + req.headers.host + '/verify/email/' + token.token
+    let verify_link = process.env.API_URL + '/verify/email/' + token.token
 
     const htmlToSend = generator.generateVerifyEmailHTML(name, verify_link)
 
