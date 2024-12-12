@@ -244,7 +244,7 @@ const modifyResult = (store) => {
 }
 
 export default {
-  findAll,
+  // findAll,
   getStoresBySearch,
   create,
   read,
