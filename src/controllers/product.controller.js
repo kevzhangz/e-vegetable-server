@@ -106,6 +106,13 @@ const update = async (req, res) => {
   try {
     let product = req.product
 
+    if(req.body.image){
+      let buffer = Buffer.from(req.body.image, 'base64')
+      req.body.image = {};
+      req.body.image.data = buffer;
+      req.body.image.contentType = 'img/jpeg';
+    }
+
     product = extend(product, req.body)
     await product.save();
 

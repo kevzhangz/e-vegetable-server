@@ -13,6 +13,8 @@ router.route('/api/store/:store_id/product')
     
 router.route('/api/product/:product_id')
       .get(authCtrl.checkSignin, productCtrl.read)
+      .put(authCtrl.checkSignin, productCtrl.update)
+      .delete(authCtrl.checkSignin, productCtrl.destroy)
 
 router.route('/api/product')
       .post(authCtrl.checkSignin, productCtrl.create)

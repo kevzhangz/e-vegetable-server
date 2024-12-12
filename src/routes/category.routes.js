@@ -10,6 +10,11 @@ router.route('/api/store/:store_id/category')
 router.route('/api/category')
       .post(authCtrl.checkSignin, categoryCtrl.create)
 
+router.route('/api/category/:category_id')
+      .put(authCtrl.checkSignin, categoryCtrl.update)
+      .delete(authCtrl.checkSignin, categoryCtrl.destroy)
+
 router.param('store_id', storeCtrl.storeById)
+router.param('category_id', categoryCtrl.categoryById)
 
 export default router;
