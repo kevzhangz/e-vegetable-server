@@ -149,20 +149,20 @@ const updateUserCart = async (req, res) => {
     // Fetch the user's cart
     const cart = await Cart.findOne({ user_id });
     if (!cart) {
-      return res.status(404).json({ message: 'Cart not found' });
+      return res.status(404).json({ message: 'Something went wrong' });
     }
 
     // Fetch the product details
     const product = await Product.findOne({ product_id });
     if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+      return res.status(404).json({ message: 'Produk tidak ditemukan' });
     }
 
     // Check if the product is in the cart
     const productIndex = cart.products.findIndex((item) => item.product_id === product_id);
 
     if (productIndex === -1) {
-      return res.status(400).json({ message: 'Product not in cart' });
+      return res.status(400).json({ message: 'Product tidak didalam keranjang' });
     }
 
     // Update quantity of existing product
@@ -184,7 +184,7 @@ const updateUserCart = async (req, res) => {
     // Save the updated cart
     await cart.save();
 
-    res.status(200).json({ message: 'Cart successfully updated' });
+    res.status(200).json({ message: 'Keranjang berhasil terupdate' });
   } catch (error) {
     console.error('Error updating cart:', error);
     res.status(500).json({ message: 'Internal server error' });
