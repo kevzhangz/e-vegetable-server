@@ -10,6 +10,7 @@ import verifyRoutes from '../src/routes/verify.routes.js'
 import storeRoutes from '../src/routes/store.routes.js'
 import categoryRoutes from '../src/routes/category.routes.js'
 import productRoutes from '../src/routes/product.routes.js'
+import cartRoutes from '../src/routes/cart.routes.js'
 
 // setup process.env
 import dotenv from 'dotenv'
@@ -49,6 +50,7 @@ app.use('/', userRoutes);
 app.use('/', storeRoutes);
 app.use('/', categoryRoutes);
 app.use('/', productRoutes);
+app.use('/', cartRoutes);
 app.use('/', verifyRoutes);
 app.use('/', router);
 
