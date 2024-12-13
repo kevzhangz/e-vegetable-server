@@ -110,7 +110,17 @@ const generateVerifyEmailHTML = (name, verify_link) => {
   return html;
 }
 
+const calculateDeliveryFee = (distanceKm) => {
+  const baseFee = 12000; // Base fee for up to 1 km
+  const additionalFeePer2Km = 3000; // Additional fee for every 2 km
+
+  // Calculate additional fee based on distance
+  const additionalIntervals = Math.max(0, Math.floor((distanceKm - 1) / 2));
+  return baseFee + (additionalFeePer2Km * additionalIntervals);
+};
+
 export default {
   generateId,
-  generateVerifyEmailHTML
+  generateVerifyEmailHTML,
+  calculateDeliveryFee,
 }

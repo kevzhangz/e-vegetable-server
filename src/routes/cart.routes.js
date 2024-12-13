@@ -1,12 +1,16 @@
 import express from 'express'
-import storeCtrl from '../controllers/store.controller.js'
+import userCtrl from '../controllers/user.controller.js'
 import cartCtrl from '../controllers/cart.controller.js'
 import authCtrl from '../controllers/auth.controller.js'
 const router =  express.Router();
 
 router.route('/api/cart')
-      .post(authCtrl.checkSignin, cartCtrl.addToCart);
+      .post(authCtrl.checkSignin, cartCtrl.addToCart)
+      .put(authCtrl.checkSignin, cartCtrl.updateUserCart);
 
-router.param('store_id', storeCtrl.storeById)
+router.route('/api/cart/:user_id')
+      .get(authCtrl.checkSignin, cartCtrl.getUserCart);
+
+router.param('user_id', userCtrl.userById)
 
 export default router;

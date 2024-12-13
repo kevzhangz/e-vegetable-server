@@ -145,6 +145,18 @@ const updateBuyerInformation = async (req, res) => {
   }
 }
 
+const userById = async (req, res, next) => {
+  try {
+    const user = await User.findOne({_id: req.params.user_id})
+    req.user = user
+    next()
+  } catch (err) {
+    return res.status(500).json({
+      error: errorHandler.getErrorMessage(err)
+    })
+  }
+}
+
 const buyerByEmail = async (req, res, next) => {
   try {
     const user = await User.findOne({email: req.params.buyerEmail, role: 'buyer'})
@@ -176,6 +188,7 @@ export default {
   read,
   update,
   updateBuyerInformation,
+  userById,
   buyerByEmail,
   sellerByEmail,
 }
