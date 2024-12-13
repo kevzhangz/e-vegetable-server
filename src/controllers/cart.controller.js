@@ -60,7 +60,7 @@ const addToCart = async (req, res) => {
       await cart.save();
     }
 
-    res.status(200).json({ message: 'Produk telah berhasil ditambah ke keranjang', cart });
+    res.status(200).json({ message: 'Produk telah berhasil ditambah ke dalam keranjang', cart });
 
   } catch (err){
     return res.status(500).json({
