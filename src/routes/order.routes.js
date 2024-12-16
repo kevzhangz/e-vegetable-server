@@ -7,6 +7,9 @@ const router =  express.Router();
 router.route('/api/order')
       .post(authCtrl.checkSignin, orderCtrl.createOrder)
 
-router.param('user_id', userCtrl.userById)
+router.route('/api/order/:order_id')
+      .get(authCtrl.checkSignin, orderCtrl.getOrderDetail)
+
+router.param('order_id', orderCtrl.orderById)
 
 export default router;

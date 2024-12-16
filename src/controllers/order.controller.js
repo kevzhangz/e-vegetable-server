@@ -68,18 +68,63 @@ const createOrder = async (req, res) => {
     order.__v = undefined;
     order._id = undefined;
 
-    res.status(200).json(order._doc);
+    res.status(200).json({
+      "message": "Order successfully created",
+      "order_id": order.order_id
+    });
   } catch (err) {
     console.error('Error creating order:', err);
     res.status(500).json({ error: dbErrorHandler.getErrorMessage(err) });
   }
 };
 
-const read = async (req, res) => {
+const getOrderDetail = async (req, res) => {
   try {
-    let product = await Product.findOne({product_id: req.body.product_id});
+    const order = req.order;
 
-    return res.status(200).json(product);
+    // Fetch the store details
+    const store = await Store.findOne({ store_id: order.store_id });
+
+    // Structure the response
+    const response = {
+      order_id: order.order_id,
+      datetime: order.datetime,
+      store: {
+        name: store.name,
+        address: store.address,
+      },
+      products: order.products.map((product) => ({
+        product_id: product.product_id,
+        product_name: product.product_name,
+        quantity: product.quantity,
+        price: product.price,
+      })),
+      total_price: order.total_price,
+      address: order.address,
+      kecamatan: order.kecamatan || null,
+      kelurahan: order.kelurahan || null,
+      rt: order.rt || null,
+      rw: order.rw || null,
+      status: order.status,
+    };
+
+    res.status(200).json(response);
+  } catch (err) {
+    console.error('Error fetching order detail:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const orderById = async (req, res, next, id) => {
+  try {
+    const order = await Order.findOne({order_id: id});
+
+    if(!order){
+      throw Error("Order not found");
+    }
+
+    req.order = order
+    next()
   } catch (err) {
     return res.status(500).json({
       error: dbErrorHandler.getErrorMessage(err)
@@ -129,7 +174,8 @@ const destroy = async (req, res) => {
 
 export default {
   createOrder,
-  read,
+  getOrderDetail,
+  orderById,
   update,
   destroy,
 }
