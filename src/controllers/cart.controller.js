@@ -131,6 +131,7 @@ const getUserCart = async (req, res) => {
     const validCartItems = cartItems.filter((item) => item !== null);
 
     res.status(200).json({
+      store_id: store.store_id,
       store_name: store.name,
       delivery_fee: deliveryFee,
       cart_items: validCartItems,
