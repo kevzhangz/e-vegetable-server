@@ -12,19 +12,19 @@ const storeProjections = {
 }
 
 const findOrderByUser = async (req, res) => {
-    try {
-        let query = {};
+  try {
+      let query = {};
 
-        query.user_id = req.user.user_id;
+      query.user_id = req.user.user_id;
 
-        let result = await Order.find(query, storeProjections).sort({ _id: -1});
+      let result = await Order.find(query, storeProjections).sort({ _id: -1});
 
-        return res.status(200).json({result})
-    } catch (err) {
-        return res.status(500).json({
-        error: dbErrorHandler.getErrorMessage(err)
-        })
-    }
+      return res.status(200).json({result})
+  } catch (err) {
+      return res.status(500).json({
+      error: dbErrorHandler.getErrorMessage(err)
+      })
+  }
 }
 
 const createOrder = async (req, res) => {
@@ -81,6 +81,101 @@ const createOrder = async (req, res) => {
   }
 };
 
+const getBuyerOrders = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const { filter } = req.query; // 'history' or 'in_progress'
+
+    // Define the status filter condition
+    let statusCondition = {};
+    if (filter === 'Riwayat') {
+      statusCondition = { status: 'Pesanan Selesai' }; // Orders with status 'selesai'
+    } else if (filter === 'Dalam Proses') {
+      statusCondition = { status: { $ne: 'Pesanan Selesai' } }; // Orders NOT equal to 'selesai'
+    }
+
+    // Fetch orders by user_id and status condition
+    const orders = await Order.find({ user_id: user_id, ...statusCondition });
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ message: 'No orders found for this user.' });
+    }
+
+    // Format the orders to match the output structure
+    const formattedOrders = orders.map((order) => ({
+      order_id: order.order_id,
+      address: order.address,
+      deliveryType: order.delivery_type.charAt(0).toUpperCase() + order.delivery_type.slice(1), // Capitalize
+      price: `Rp ${order.total_price.toLocaleString('id-ID')}`, // Format price with 'Rp' and thousand separator
+      date: new Date(order.datetime).toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }),
+    }));
+
+    // Return the formatted order list
+    return res.status(200).json(formattedOrders);
+  } catch (error) {
+    console.error('Error fetching user orders:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getSellerOrders = async (req, res) => {
+  try {
+    const { store_id } = req.params;
+    const { filter, status } = req.query; // delivery/pickup filter and status filter
+
+    let conditions = {};
+
+    // Build query conditions
+    conditions.store_id = store_id;
+
+    if (filter) {
+      conditions.delivery_type = filter.toLowerCase(); // Match delivery_type: 'delivery' or 'pickup'
+    }
+
+    if (status) {
+      conditions.status = status; // Match status condition
+    }
+
+    console.log(conditions);
+
+    // Fetch orders based on conditions
+    const orders = await Order.find(conditions);
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ message: 'No orders found for this store.' });
+    }
+
+    // Format the orders to match the output structure
+    const formattedOrders = orders.map((order) => ({
+      order_id: order.order_id,
+      address: order.address,
+      deliveryType: order.delivery_type.charAt(0).toUpperCase() + order.delivery_type.slice(1), // Capitalize
+      price: `Rp ${order.total_price.toLocaleString('id-ID')}`, // Format price with 'Rp' and thousand separator
+      date: new Date(order.datetime).toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }),
+    }));
+
+    // Return the formatted order list
+    return res.status(200).json(formattedOrders);
+  } catch (error) {
+    console.error('Error fetching store orders:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 const getOrderDetail = async (req, res) => {
   try {
     const order = req.order;
@@ -88,10 +183,12 @@ const getOrderDetail = async (req, res) => {
     // Fetch the store details
     const store = await Store.findOne({ store_id: order.store_id });
 
+    const orderDate = new Date(order.datetime);
+
     // Structure the response
     const response = {
       order_id: order.order_id,
-      datetime: order.datetime,
+      datetime: `${orderDate.getUTCDate()} ${orderDate.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })} ${orderDate.getUTCFullYear()} ${orderDate.toTimeString().split(' ')[0]}`,
       store: {
         name: store.name,
         address: store.address,
@@ -103,6 +200,7 @@ const getOrderDetail = async (req, res) => {
         price: product.price,
       })),
       delivery_fee: order.delivery_fee,
+      delivery_type: order.delivery_type,
       total_price: order.total_price,
       address: order.address,
       kecamatan: order.kecamatan || null,
@@ -138,21 +236,37 @@ const orderById = async (req, res, next, id) => {
 
 const update = async (req, res) => {
   try {
-    let product = req.product
+    let order = req.order;
 
-    if(req.body.image){
-      let buffer = Buffer.from(req.body.image, 'base64')
-      req.body.image = {};
-      req.body.image.data = buffer;
-      req.body.image.contentType = 'img/jpeg';
+    let oldStatus = order.status;
+    order.status = req.body.status;
+
+    order.save();
+
+    let title = '';
+    let content = '';
+
+    if(order.delivery_type == 'pickup'){
+      if(req.body.status == 'Siap dikemas'){
+        title = 'Pesanan Anda telah dikemas!'
+        content = 'Pesanan anda telah dikemas, silahkan menuju toko untuk mengambil pesanan'
+      }
+    } else if(order.delivery_type == 'delivery'){
+      if(req.body.status == 'Siap dikirim'){
+        title = 'Pesanan Anda telah siap dikirim!'
+        content = 'Pesanan Anda telah diterima dan siap dikirim.'
+      } else if(req.body.status == 'Sedang dikirim'){
+        title = 'Pesanan Anda sedang dikirim!'
+        content = 'Pesanan Anda sedang dalam perjalanan.'
+      } else if(req.body.status == 'Pesanan telah siap dikirim'){
+        title = 'Pesanan Anda sudah sampai!'
+        content = 'Pesanan Anda telah tiba, siap untuk diterima.'
+      }
     }
 
-    product = extend(product, req.body)
-    await product.save();
+    await generator.sendNotificationToUser(order.user_id, title, content);
+    return res.status(200).json({message: "Status Pesanan telah berhasil diupdate"});
 
-    return res.status(200).json({
-      messages : 'Product Successfully updated'
-    });
   } catch (err) {
     return res.status(500).json({
       error: dbErrorHandler.getErrorMessage(err)
@@ -178,6 +292,8 @@ const destroy = async (req, res) => {
 
 export default {
   createOrder,
+  getBuyerOrders,
+  getSellerOrders,
   getOrderDetail,
   orderById,
   update,

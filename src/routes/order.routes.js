@@ -9,6 +9,13 @@ router.route('/api/order')
 
 router.route('/api/order/:order_id')
       .get(authCtrl.checkSignin, orderCtrl.getOrderDetail)
+      .put(authCtrl.checkSignin, orderCtrl.update)
+
+router.route('/api/order/buyer/:user_id')
+      .get(authCtrl.checkSignin, orderCtrl.getBuyerOrders)
+
+router.route('/api/order/seller/:store_id')
+      .get(authCtrl.checkSignin, orderCtrl.getSellerOrders)
 
 router.param('order_id', orderCtrl.orderById)
 
