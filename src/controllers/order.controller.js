@@ -65,6 +65,9 @@ const createOrder = async (req, res) => {
     // Clear the user's cart
     await Cart.findOne({ user_id: user._id }).deleteOne();
 
+    await generator.sendNotificationToUser(store.owner, 'Anda memiliki pesanan baru!', 'Silahkan buka aplikasi untuk melihat pesanan')
+    await generator.sendNotificationToUser(user._id, 'Pesanan anda telah diterima oleh penjual', 'Silahkan menunggu konfirmasi pesanan dari penjual')
+
     order.__v = undefined;
     order._id = undefined;
 
@@ -99,6 +102,7 @@ const getOrderDetail = async (req, res) => {
         quantity: product.quantity,
         price: product.price,
       })),
+      delivery_fee: order.delivery_fee,
       total_price: order.total_price,
       address: order.address,
       kecamatan: order.kecamatan || null,

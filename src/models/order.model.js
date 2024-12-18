@@ -13,6 +13,7 @@ const OrderSchema = new mongoose.Schema({
   ],
   total_price: { type: Number, required: true },
   address: { type: String, required: true },
+  delivery_fee: { type: Number, required: true},
   delivery_type: { type: String, required: true },
   status: { type: String, required: true },
   datetime: { type: String, required: true },

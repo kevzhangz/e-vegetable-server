@@ -1,3 +1,8 @@
+import axios from 'axios';
+
+import dotenv from 'dotenv'
+dotenv.config();
+
 const generateId = (length) => {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -119,8 +124,37 @@ const calculateDeliveryFee = (distanceKm) => {
   return baseFee + (additionalFeePer2Km * additionalIntervals);
 };
 
+const sendNotificationToUser = async (user_id, title, content) => {
+  let payload =  {
+    "app_id": process.env.NOTIFICATION_APP_ID,
+    "include_aliases":{
+        "external_id":[user_id]
+    },
+    "target_channel":"push",
+    "headings":{
+      "en":title
+    },
+    "contents": {
+      "en": content
+    }
+  }
+
+  try {
+    const response = await axios.post('https://onesignal.com/api/v1/notifications', data, {
+      headers: {
+        Authorization: process.env.NOTIFICATION_APP_KEY,
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log('Response Data:', response.data);
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
+}
+
 export default {
   generateId,
   generateVerifyEmailHTML,
   calculateDeliveryFee,
+  sendNotificationToUser,
 }
