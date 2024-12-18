@@ -142,7 +142,7 @@ const sendNotificationToUser = async (user_id, title, content) => {
   try {
     const response = await axios.post('https://onesignal.com/api/v1/notifications', data, {
       headers: {
-        Authorization: process.env.NOTIFICATION_APP_KEY,
+        Authorization: process.env.NOTIFICATION_API_KEY,
         'Content-Type': 'application/json',
       },
     });
