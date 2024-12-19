@@ -134,6 +134,7 @@ const updateBuyerInformation = async (req, res) => {
 
     let response = {
       ...user._doc,
+      _id: req.profile._id
     }
 
     res.json(response);
