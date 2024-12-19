@@ -131,7 +131,6 @@ const updateBuyerInformation = async (req, res) => {
     user.salt = undefined
     user.saved_recipe = undefined;
     user.__v = undefined;
-    user._id = undefined;
 
     let response = {
       ...user._doc,
