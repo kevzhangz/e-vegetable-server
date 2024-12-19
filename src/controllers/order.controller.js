@@ -53,6 +53,7 @@ const createOrder = async (req, res) => {
     // Create the order
     const newOrder = {
       ...req.body,
+      name: user.name,
       user_id: user._id,
       store_id: store.store_id,
       order_id: generator.generateId(6),
@@ -104,6 +105,7 @@ const getBuyerOrders = async (req, res) => {
     // Format the orders to match the output structure
     const formattedOrders = orders.map((order) => ({
       order_id: order.order_id,
+      name: order.name,
       address: order.address,
       deliveryType: order.delivery_type.charAt(0).toUpperCase() + order.delivery_type.slice(1), // Capitalize
       price: `Rp ${order.total_price.toLocaleString('id-ID')}`, // Format price with 'Rp' and thousand separator
@@ -153,6 +155,7 @@ const getSellerOrders = async (req, res) => {
     // Format the orders to match the output structure
     const formattedOrders = orders.map((order) => ({
       order_id: order.order_id,
+      name: order.name,
       address: order.address,
       deliveryType: order.delivery_type.charAt(0).toUpperCase() + order.delivery_type.slice(1), // Capitalize
       price: `Rp ${order.total_price.toLocaleString('id-ID')}`, // Format price with 'Rp' and thousand separator

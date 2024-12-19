@@ -138,7 +138,7 @@ const getUserCart = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      error: dbErrorHandler.getErrorMessage(err)
+      error: dbErrorHandler.getErrorMessage(error)
     })
   }
 };
