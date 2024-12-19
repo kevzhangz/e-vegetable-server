@@ -143,10 +143,8 @@ const getSellerOrders = async (req, res) => {
       conditions.status = status; // Match status condition
     }
 
-    console.log(conditions);
-
     // Fetch orders based on conditions
-    const orders = await Order.find(conditions);
+    const orders = await Order.find(conditions).sort({ datetime: -1 });
 
     if (!orders || orders.length === 0) {
       return res.status(404).json({ message: 'No orders found for this store.' });
@@ -173,6 +171,50 @@ const getSellerOrders = async (req, res) => {
   } catch (error) {
     console.error('Error fetching store orders:', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const getOrderStatusCounts = async (req, res) => {
+  try {
+    const { store_id } = req.params;
+
+    const excludedStatus = "Pesanan Selesai";
+
+    // Aggregate query to count orders by status
+    const statusCounts = await Order.aggregate([
+      {
+        $match: {
+          store_id: store_id,
+          status: { $ne: excludedStatus }, // Exclude "Pesanan Selesai"
+        },
+      },
+      {
+        $group: {
+          _id: "$status", // Group by status
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const output = {
+      pesanan_baru: 0,
+      siap_dikirim: 0,
+      sedang_dikirim: 0,
+      telah_siap_dikirim: 0,
+    };
+
+    statusCounts.forEach((status) => {
+      const key = status._id.toLowerCase().replace(/ /g, "_");
+      if (output[key] !== undefined) {
+        output[key] = status.count;
+      }
+    });
+
+    // Return the response
+    return res.status(200).json(output);
+  } catch (error) {
+    console.error("Error fetching order status counts:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -258,7 +300,7 @@ const update = async (req, res) => {
       } else if(req.body.status == 'Sedang dikirim'){
         title = 'Pesanan Anda sedang dikirim!'
         content = 'Pesanan Anda sedang dalam perjalanan.'
-      } else if(req.body.status == 'Pesanan telah siap dikirim'){
+      } else if(req.body.status == 'Telah siap dikirim'){
         title = 'Pesanan Anda sudah sampai!'
         content = 'Pesanan Anda telah tiba, siap untuk diterima.'
       }
@@ -295,6 +337,7 @@ export default {
   getBuyerOrders,
   getSellerOrders,
   getOrderDetail,
+  getOrderStatusCounts,
   orderById,
   update,
   destroy,

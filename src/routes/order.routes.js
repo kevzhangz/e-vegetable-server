@@ -17,6 +17,9 @@ router.route('/api/order/buyer/:user_id')
 router.route('/api/order/seller/:store_id')
       .get(authCtrl.checkSignin, orderCtrl.getSellerOrders)
 
+router.route('/api/order/status/:store_id')
+      .get(authCtrl.checkSignin, orderCtrl.getOrderStatusCounts)
+
 router.param('order_id', orderCtrl.orderById)
 
 export default router;
