@@ -1,4 +1,5 @@
 import User from '../models/user.model.js'
+import Store from '../models/store.model.js'
 import Token from '../models/token.model.js'
 import errorHandler from '../helpers/dbErrorHandler.js'
 import extend from 'lodash/extend.js'
@@ -96,11 +97,19 @@ const update = async (req, res) => {
     user.salt = undefined
     user.saved_recipe = undefined;
     user.__v = undefined;
-    user._id = undefined;
 
     let response = {
       ...user._doc,
+      _id: req.profile._id,
       profile: user.profile.data.toString('base64')
+    }
+
+    if(user.role == 'seller'){
+      let store = await Store.findOne({owner: user._id});
+
+      response['geolocation'] = store?.geolocation
+      response['store_id'] = store?.store_id
+      response['store_name'] = store?.name
     }
 
     res.json(response);
@@ -110,6 +119,42 @@ const update = async (req, res) => {
     })
   }
 }
+
+
+const updatePassword = async (req, res) => {
+  try {
+    const { old_password, new_password, confirm_new_password } = req.body;
+
+    // Validate input fields
+    if (!old_password || !new_password || !confirm_new_password) {
+      return res.status(400).json({ error: "All fields are required." });
+    }
+
+    if (new_password !== confirm_new_password) {
+      return res.status(400).json({ error: "New password and confirmation do not match." });
+    }
+
+    const user = req.profile;
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Verify old password
+    if (!user.authenticate(old_password)) {
+      return res.status(400).json({ error: "Old password is incorrect." });
+    }
+
+    // Hash and update new password
+    user.password = new_password;
+    await user.save();
+
+    res.status(200).json({ message: "Password updated successfully." });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
+};
 
 const updateBuyerInformation = async (req, res) => {
   try {
@@ -148,7 +193,7 @@ const updateBuyerInformation = async (req, res) => {
 const userById = async (req, res, next) => {
   try {
     const user = await User.findOne({_id: req.params.user_id})
-    req.user = user
+    req.profile = user
     next()
   } catch (err) {
     return res.status(500).json({
@@ -187,6 +232,7 @@ export default {
   create,
   read,
   update,
+  updatePassword,
   updateBuyerInformation,
   userById,
   buyerByEmail,

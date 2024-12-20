@@ -130,7 +130,7 @@ const getBuyerOrders = async (req, res) => {
 const getSellerOrders = async (req, res) => {
   try {
     const { store_id } = req.params;
-    const { filter, status } = req.query; // delivery/pickup filter and status filter
+    const { filter, status, limit } = req.query; // delivery/pickup filter and status filter
 
     let conditions = {};
 
@@ -146,7 +146,7 @@ const getSellerOrders = async (req, res) => {
     }
 
     // Fetch orders based on conditions
-    const orders = await Order.find(conditions).sort({ datetime: -1 });
+    const orders = await Order.find(conditions).sort({ datetime: -1 }).limit(limit);
 
     if (!orders || orders.length === 0) {
       return res.status(404).json({ message: 'No orders found for this store.' });
