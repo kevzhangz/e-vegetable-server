@@ -16,7 +16,7 @@ const findAll = async (req, res) => {
     query.store_id = req.store.store_id;
 
     // Fetch all products from the store
-    let result = await Product.find(query, storeProjections).sort({ _id: -1 });
+    let result = await Product.find(query, storeProjections)
 
     // Fetch all category IDs from the result
     const categoryIds = [...new Set(result.map((item) => item.category_id))];
