@@ -101,7 +101,7 @@ const update = async (req, res) => {
     let response = {
       ...user._doc,
       _id: req.profile._id,
-      profile: user.profile.data.toString('base64')
+      profile: user.profile.data?.toString('base64')
     }
 
     if(user.role == 'seller'){

@@ -145,12 +145,12 @@ const create = async (req, res) => {
     storeOwner.hashed_password = undefined
     storeOwner.salt = undefined
     storeOwner.__v = undefined;
-    storeOwner._id = undefined;
 
     let response = {
       ...storeOwner._doc,
       geolocation: store.geolocation,
-      store_id: store.store_id
+      store_id: store.store_id,
+      store_name: store.name
     }
 
     return res.status(200).json(response);
@@ -185,12 +185,50 @@ const update = async (req, res) => {
       req.body.image.contentType = 'img/jpeg';
     }
 
+    if(req.body.geolocation){
+      req.body.geolocation = {
+        type: "Point",
+        coordinates: [req.body.geolocation.lon, req.body.geolocation.lat]
+      }
+    }
+
     store = extend(store, req.body)
     await store.save();
 
+    let storeOwner = await User.findOne({email: req.body.email, role: 'seller'});
+
+    storeOwner.hashed_password = undefined
+    storeOwner.salt = undefined
+    storeOwner.__v = undefined;
+
+    console.log(storeOwner.profile)
+
+    let response = {
+      ...storeOwner._doc,
+      profile: storeOwner.profile ? storeOwner.profile.data?.toString('base64') : null,
+      geolocation: store.geolocation,
+      store_id: store.store_id,
+      store_name: store.name
+    }
+
+    console.log(response);
+
+    return res.status(200).json(response);
+  } catch (err) {
+    return res.status(500).json({
+      error: dbErrorHandler.getErrorMessage(err)
+    })
+  }
+}
+
+const getStoreInformation = async (req, res) => {
+  try {
+    let store = req.store;
+
     return res.status(200).json({
-      messages : 'Store Successfully updated'
-    });
+      ...store._doc,
+      image: store.image ? store.image.data.toString('base64') : null
+    })
   } catch (err) {
     return res.status(500).json({
       error: dbErrorHandler.getErrorMessage(err)
@@ -248,6 +286,7 @@ const modifyResult = (store) => {
 export default {
   // findAll,
   getStoresBySearch,
+  getStoreInformation,
   create,
   read,
   update,
