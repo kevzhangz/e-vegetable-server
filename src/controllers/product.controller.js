@@ -15,22 +15,49 @@ const findAll = async (req, res) => {
 
     query.store_id = req.store.store_id;
 
-    // if(req.query.filter){
-    //   const category = await Category.find({ name: {$in: req.query.filter.split(',')} }).then(categories => categories.map(category => category._id));
-    //   query.category = { $in: category };
-    // }
+    // Fetch all products from the store
+    let result = await Product.find(query, storeProjections).sort({ _id: -1 });
 
-    let result = await Product.find(query, storeProjections).sort({ _id: -1});
+    // Fetch all category IDs from the result
+    const categoryIds = [...new Set(result.map((item) => item.category_id))];
 
-    result = modifyResult(result);
+    // Fetch category names using category IDs
+    const categories = await Category.find({ category_id: { $in: categoryIds } });
 
-    return res.status(200).json({result})
+    // Create a mapping of category_id to category name
+    const categoryMap = {};
+    categories.forEach((category) => {
+      categoryMap[category.category_id] = category.name;
+    });
+
+    // Group products by category name
+    const groupedResult = {};
+    result.forEach((item) => {
+      let categoryName = categoryMap[item.category_id] || 'Uncategorized';
+      if (!groupedResult[categoryName]) {
+        groupedResult[categoryName] = [];
+      }
+
+      // Modify the result as before
+      groupedResult[categoryName].push({
+        ...item._doc,
+        image: item.image.data.toString('base64'),
+      });
+    });
+
+    // Transform groupedResult into the desired format
+    const finalResult = Object.keys(groupedResult).map((categoryName) => ({
+      [categoryName]: groupedResult[categoryName],
+    }));
+
+    return res.status(200).json({ result: finalResult });
   } catch (err) {
+    console.error('Error fetching products:', err);
     return res.status(500).json({
-      error: dbErrorHandler.getErrorMessage(err)
-    })
+      error: dbErrorHandler.getErrorMessage(err),
+    });
   }
-}
+};
 
 const findCategoryProduct = async (req, res) => {
     try {
