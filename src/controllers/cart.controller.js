@@ -87,7 +87,7 @@ const getUserCart = async (req, res) => {
     const distanceResult = await Store.aggregate([
       {
         $geoNear: {
-          near: req.user.geolocation,
+          near: req.profile.geolocation,
           distanceField: 'distance',
           spherical: true,
         },
