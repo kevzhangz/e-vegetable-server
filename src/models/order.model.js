@@ -22,6 +22,10 @@ const OrderSchema = new mongoose.Schema({
   delivery_type: { type: String, required: true },
   status: { type: String, required: true },
   datetime: { type: String, required: true },
+  geolocation: {
+    lat: Number,
+    long: Number,
+  }
 });
 
 export default mongoose.model('Order', OrderSchema);
