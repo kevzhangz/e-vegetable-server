@@ -230,6 +230,16 @@ const getOrderDetail = async (req, res) => {
 
     const orderDate = new Date(order.datetime);
 
+    let lat;
+    let long;
+    if(order.delivery_type == 'pickup'){
+      lat = store.geolocation.coordinates[1];
+      long = store.geolocation.coordinates[0];
+    } else {
+      lat = order.geolocation.lat;
+      long = order.geolocation.long;
+    }
+
     // Structure the response
     const response = {
       order_id: order.order_id,
@@ -253,6 +263,8 @@ const getOrderDetail = async (req, res) => {
       rt: order.rt || null,
       rw: order.rw || null,
       status: order.status,
+      lat: lat,
+      long: long,
     };
 
     res.status(200).json(response);
