@@ -14,7 +14,10 @@ const findAll = async (req, res) => {
     let query = {};
 
     query.store_id = req.store.store_id;
-    query.name = new RegExp(["^", req.query.search, "$"].join(""), "i");
+
+    if(req.query.search){
+      query.name = new RegExp(["^", req.query.search, "$"].join(""), "i");
+    }
 
     // Fetch all products from the store
     let result = await Product.find(query, storeProjections)
