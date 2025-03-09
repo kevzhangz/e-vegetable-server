@@ -16,7 +16,7 @@ const findAll = async (req, res) => {
     query.store_id = req.store.store_id;
 
     if(req.query.search){
-      query.name = new RegExp(["^", req.query.search, "$"].join(""), "i");
+      query.name = new RegExp(req.query.search, "i");
     }
 
     // Fetch all products from the store
